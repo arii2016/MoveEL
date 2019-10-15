@@ -6,8 +6,13 @@ from serial.tools import list_ports
 import Tkinter
 import threading
 
+stop_flg = False
+
 def move_exec():
     Bt_Move.config(state="disable")
+    Bt_Stop.config(state="normal")
+    global stop_flg
+    stop_flg = False
 
     # ポート番号を取得する
     SERIAL_PORT = ""
@@ -33,13 +38,18 @@ def move_exec():
         sys.stderr.write('USBが接続されていません！\n')
         return
 
+    # Gコードモードに変更
+    device.write(chr(0x11))
+    device.write("?\n")
+
     # Gコード読み込み
     f = open(HOME + "MoveEL/test.txt", mode='r')
     tx_buffer = f.read() + '\nM01\n'
     f.close()
 
-    # Gコードモードに変更
-    device.write(chr(0x11))
+    # 入力をクリアしておく
+    time.sleep(0.5)
+    device.flushInput()
 
     # Gコード送信処理
     TX_CHUNK_SIZE = 256
@@ -50,6 +60,9 @@ def move_exec():
     last_request_ready = 0
     last_status_check = 0
     while True:
+        if stop_flg == True:
+            device.write("!")
+            break
         # 受信
         chars = device.read(RX_CHUNK_SIZE)
         if len(chars) > 0:
@@ -96,11 +109,17 @@ def move_exec():
 
     lock.release()
     Bt_Move.config(state="normal")
+    Bt_Stop.config(state="disable")
 
 def move_click():
     if lock.acquire(False):
         th = threading.Thread(target=move_exec)
         th.start()
+
+def stop_click():
+    global stop_flg
+    stop_flg = True
+
 
 if sys.platform == "linux" or sys.platform == "linux2":
     HOME = "/home/pi/Src/"
@@ -112,7 +131,9 @@ lock = threading.Lock()
 root = Tkinter.Tk()
 root.geometry("{0}x{1}+0+0".format(root.winfo_screenwidth(), root.winfo_screenheight()))
 
-Bt_Move = Tkinter.Button(root, text='実行', width=8, height=5, font=("", 32), command=move_click)
-Bt_Move.pack(expand=True)
+Bt_Move = Tkinter.Button(root, text='実行', width=8, height=5, font=("", 32), command=move_click, state="normal")
+Bt_Move.pack(side='left', expand=True)
+Bt_Stop = Tkinter.Button(root, text='停止', width=8, height=5, font=("", 32), command=stop_click, state="disable")
+Bt_Stop.pack(side='left', expand=True)
 
 root.mainloop()
