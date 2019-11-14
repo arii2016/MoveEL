@@ -8,12 +8,20 @@ import threading
 
 stop_flg = False
 
-def move_exec():
+def move_thread():
     Bt_Move.config(state="disable")
     Bt_Stop.config(state="normal")
     global stop_flg
     stop_flg = False
 
+    move_exec()
+
+    lock.release()
+    Bt_Move.config(state="normal")
+    Bt_Stop.config(state="disable")
+
+
+def move_exec():
     # ポート番号を取得する
     SERIAL_PORT = ""
 
@@ -107,13 +115,9 @@ def move_exec():
 
     device.close()
 
-    lock.release()
-    Bt_Move.config(state="normal")
-    Bt_Stop.config(state="disable")
-
 def move_click():
     if lock.acquire(False):
-        th = threading.Thread(target=move_exec)
+        th = threading.Thread(target=move_thread)
         th.start()
 
 def stop_click():
