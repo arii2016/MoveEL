@@ -51,7 +51,7 @@ def move_exec():
     device.write("?\n")
 
     # Gコード読み込み
-    f = open(HOME + "MoveEL/test.txt", mode='r')
+    f = open(HOME + "MoveEL/mass_axis_test.txt", mode='r')
     tx_buffer = f.read() + '\nM01\n'
     f.close()
 
