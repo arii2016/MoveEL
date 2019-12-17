@@ -8,20 +8,24 @@ import threading
 
 stop_flg = False
 
-def move_thread():
-    Bt_Move.config(state="disable")
+def move_thread(gcode_path):
+    Bt_Move1.config(state="disable")
+    Bt_Move2.config(state="disable")
+    Bt_Move3.config(state="disable")
     Bt_Stop.config(state="normal")
     global stop_flg
     stop_flg = False
 
-    move_exec()
+    move_exec(gcode_path)
 
     lock.release()
-    Bt_Move.config(state="normal")
+    Bt_Move1.config(state="normal")
+    Bt_Move2.config(state="normal")
+    Bt_Move3.config(state="normal")
     Bt_Stop.config(state="disable")
 
 
-def move_exec():
+def move_exec(gcode_path):
     # ポート番号を取得する
     SERIAL_PORT = ""
 
@@ -35,15 +39,11 @@ def move_exec():
         break
 
     if SERIAL_PORT == "":
-        sys.stderr.write('USBが接続されていません！\n')
-        Bt_Move.config(state="normal")
         return
 
     try:
         device = serial.Serial(SERIAL_PORT, 921600, timeout=0, writeTimeout=0.1)
     except:
-        Bt_Move.config(state="normal")
-        sys.stderr.write('USBが接続されていません！\n')
         return
 
     # Gコードモードに変更
@@ -51,7 +51,7 @@ def move_exec():
     device.write("?\n")
 
     # Gコード読み込み
-    f = open(HOME + "MoveEL/mass_axis_test.txt", mode='r')
+    f = open(gcode_path, mode='r')
     tx_buffer = f.read() + '\nM01\n'
     f.close()
 
@@ -74,7 +74,6 @@ def move_exec():
         # 受信
         chars = device.read(RX_CHUNK_SIZE)
         if len(chars) > 0:
-            print (chars)
             if 'Z' in chars:
                 break
             if ready_char in chars:
@@ -115,9 +114,19 @@ def move_exec():
 
     device.close()
 
-def move_click():
+def move1_click():
     if lock.acquire(False):
-        th = threading.Thread(target=move_thread)
+        th = threading.Thread(target=move_thread, args=(HOME + "MoveEL/mass_axis_test.txt",))
+        th.start()
+
+def move2_click():
+    if lock.acquire(False):
+        th = threading.Thread(target=move_thread, args=(HOME + "MoveEL/hatching_test.txt",))
+        th.start()
+
+def move3_click():
+    if lock.acquire(False):
+        th = threading.Thread(target=move_thread, args=(HOME + "MoveEL/pro_axis_test.txt",))
         th.start()
 
 def stop_click():
@@ -135,9 +144,18 @@ lock = threading.Lock()
 root = Tkinter.Tk()
 root.geometry("{0}x{1}+0+0".format(root.winfo_screenwidth(), root.winfo_screenheight()))
 
-Bt_Move = Tkinter.Button(root, text='実行', width=8, height=5, font=("", 32), command=move_click, state="normal")
-Bt_Move.pack(side='left', expand=True)
-Bt_Stop = Tkinter.Button(root, text='停止', width=8, height=5, font=("", 32), command=stop_click, state="disable")
+frame1 = Tkinter.Frame(root)
+frame1.pack(side='top', expand=True, fill="x")
+Bt_Move1 = Tkinter.Button(frame1, text='実行1', width=8, height=5, font=("", 32), command=move1_click, state="normal")
+Bt_Move1.pack(side='left', expand=True)
+Bt_Move2 = Tkinter.Button(frame1, text='実行2', width=8, height=5, font=("", 32), command=move2_click, state="normal")
+Bt_Move2.pack(side='left', expand=True)
+
+frame2 = Tkinter.Frame(root)
+frame2.pack(side='top', expand=True, fill="x")
+Bt_Move3 = Tkinter.Button(frame2, text='実行3', width=8, height=5, font=("", 32), command=move3_click, state="normal")
+Bt_Move3.pack(side='left', expand=True)
+Bt_Stop = Tkinter.Button(frame2, text='停止', width=8, height=5, font=("", 32), command=stop_click, state="disable")
 Bt_Stop.pack(side='left', expand=True)
 
 root.mainloop()
