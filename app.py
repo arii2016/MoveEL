@@ -146,16 +146,16 @@ root.geometry("{0}x{1}+0+0".format(root.winfo_screenwidth(), root.winfo_screenhe
 
 frame1 = Tkinter.Frame(root)
 frame1.pack(side='top', expand=True, fill="x")
-Bt_Move1 = Tkinter.Button(frame1, text='実行1', width=8, height=5, font=("", 32), command=move1_click, state="normal")
+Bt_Move1 = Tkinter.Button(frame1, text='実行1', width=8, height=3, font=("", 24), command=move1_click, state="normal")
 Bt_Move1.pack(side='left', expand=True)
-Bt_Move2 = Tkinter.Button(frame1, text='実行2', width=8, height=5, font=("", 32), command=move2_click, state="normal")
+Bt_Move2 = Tkinter.Button(frame1, text='実行2', width=8, height=3, font=("", 24), command=move2_click, state="normal")
 Bt_Move2.pack(side='left', expand=True)
 
 frame2 = Tkinter.Frame(root)
 frame2.pack(side='top', expand=True, fill="x")
-Bt_Move3 = Tkinter.Button(frame2, text='実行3', width=8, height=5, font=("", 32), command=move3_click, state="normal")
+Bt_Move3 = Tkinter.Button(frame2, text='実行3', width=8, height=3, font=("", 24), command=move3_click, state="normal")
 Bt_Move3.pack(side='left', expand=True)
-Bt_Stop = Tkinter.Button(frame2, text='停止', width=8, height=5, font=("", 32), command=stop_click, state="disable")
+Bt_Stop = Tkinter.Button(frame2, text='停止', width=8, height=3, font=("", 24), command=stop_click, state="disable")
 Bt_Stop.pack(side='left', expand=True)
 
 root.mainloop()
